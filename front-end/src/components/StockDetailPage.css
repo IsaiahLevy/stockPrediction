@@ -1,0 +1,38 @@
+.stock-detail-page {
+  max-width: 800px;
+  margin: auto;
+  margin-top: 12%;
+  margin-bottom: 50%;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background-color: #f4f4f4;
+}
+
+.stock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.stock-logo {
+  width: 100px; /* Adjust size as needed */
+}
+
+.stock-sentiment {
+  flex-grow: 1;
+  padding-left: 20px;
+}
+
+.stock-tweet {
+  margin-top: 20px;
+}
+
+.stock-explanation {
+  margin-top: 20px;
+  background-color: #eef2f7;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}

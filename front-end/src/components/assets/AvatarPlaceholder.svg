@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="182px" height="182px" viewBox="0 0 182 182" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Avatar Placeholder </title>
+    <g id="🔑-User-Permissions" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Ox-Admin-New-User-Empty-State" transform="translate(-596.000000, -213.000000)">
+            <g id="Form" transform="translate(566.000000, 111.000000)">
+                <g id="Avatar-Placeholder-" transform="translate(30.000000, 102.000000)">
+                    <rect id="Rectangle" fill="#8D8E90" x="0" y="0" width="182" height="182" rx="4"></rect>
+                    <g id="Group" transform="translate(45.000000, 77.000000)">
+                        <circle id="Oval" fill="#FFFFFF" cx="5" cy="5" r="5"></circle>
+                        <circle id="Oval" fill="#FFFFFF" cx="87" cy="5" r="5"></circle>
+                        <path d="M29.7871094,22.0625 C35.0168077,25.6328952 39.1948676,27.6381036 42.3212891,28.078125 C48.7273547,28.9797329 57.3388672,27.8706055 62.0898438,22.0625" id="Path-3" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
