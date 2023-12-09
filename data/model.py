@@ -1,10 +1,12 @@
 import json
 import pandas as pd
+import numpy as np
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from imblearn.over_sampling import SMOTE
-from datetime import datetime
+from sklearn.metrics import classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Function to load JSON data
 def load_json(file_path):
@@ -18,57 +20,77 @@ stockData = load_json('stockData.json')
 tweets_df = pd.DataFrame(tweets)
 stock_df = pd.DataFrame(stockData)
 
+# Extract sentiment data
+tweets_df['positive_sentiment'] = tweets_df['sentiment'].apply(lambda x: x[0])
+tweets_df['neutral_sentiment'] = tweets_df['sentiment'].apply(lambda x: x[1])
+tweets_df['negative_sentiment'] = tweets_df['sentiment'].apply(lambda x: x[2])
+
+# Aggregate tweet data
 tweets_df['date'] = pd.to_datetime(tweets_df['date']).dt.date
-tweets_df[['positive_sentiment', 'neutral_sentiment', 'negative_sentiment']] = pd.DataFrame(tweets_df.sentiment.tolist(), index=tweets_df.index)
+aggregated_tweets = tweets_df.groupby(['date', 'company']).agg(
+    mean_positive_sentiment=('positive_sentiment', 'mean'),
+    mean_neutral_sentiment=('neutral_sentiment', 'mean'),
+    mean_negative_sentiment=('negative_sentiment', 'mean'),
+    tweet_count=('tweet', 'count')
+).reset_index()
+
+# Prepare stock data
 stock_df['date'] = pd.to_datetime(stock_df['date']).dt.date
-stock_df['date'] = stock_df['date'] - pd.Timedelta(days=1)
+stock_df['target'] = (stock_df['close'] > stock_df['open']).astype(int)
 
-# Convert 'open' and 'close' to numeric
-stock_df['open'] = pd.to_numeric(stock_df['open'], errors='coerce')
-stock_df['close'] = pd.to_numeric(stock_df['close'], errors='coerce')
+# Merge datasets
+combined_df = pd.merge(aggregated_tweets, stock_df, on=['date', 'company'])
 
-combined_df = pd.merge(tweets_df, stock_df, on=['date', 'company'], how='left')
-combined_df['target'] = (combined_df['close'] > combined_df['open']).astype(int)
-combined_df['daily_return'] = (combined_df['close'] - combined_df['open']) / combined_df['open']
+# Exploratory Data Analysis (EDA) and Visualization
+# Perform EDA and save plots as needed
 
 # Split data into training and testing sets
-split_date = combined_df['date'].quantile(0.8, interpolation='nearest')
-train_df = combined_df[combined_df['date'] <= split_date]
-test_df = combined_df[combined_df['date'] > split_date]
+features = ['mean_positive_sentiment', 'mean_neutral_sentiment', 'mean_negative_sentiment', 'tweet_count']
+X = combined_df[features]
+y = combined_df['target']
 
-features = ['positive_sentiment', 'neutral_sentiment', 'negative_sentiment', 'daily_return']
-X_train, y_train = train_df[features], train_df['target']
-X_test, y_test = test_df[features], test_df['target']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Impute missing values
 imputer = SimpleImputer(strategy='mean')
 X_train = imputer.fit_transform(X_train)
 X_test = imputer.transform(X_test)
 
-# Apply SMOTE for handling class imbalance
-smote = SMOTE(random_state=42)
-X_train, y_train = smote.fit_resample(X_train, y_train)
-
-# Define the deep learning model
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
-    tf.keras.layers.Dropout(0.5),
-    tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dropout(0.5),
-    tf.keras.layers.Dense(1, activation='sigmoid')
-])
-
-# Compile the model
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# Model Definition
+def build_model(input_shape):
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(32, activation='relu', input_shape=(input_shape,)),
+        tf.keras.layers.Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
 
 # Train the model
-model.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2)
+model = build_model(X_train.shape[1])
+model.fit(X_train, y_train, epochs=10, batch_size=32, verbose=0)
 
 # Evaluate the model
-loss, accuracy = model.evaluate(X_test, y_test)
-y_pred = model.predict(X_test)
-y_pred = (y_pred > 0.5).astype(int).reshape(-1)
+predictions = model.predict(X_test)
+print(classification_report(y_test, predictions.round()))
 
-print("Deep Learning Model Accuracy:", accuracy)
-print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-print("Classification Report:\n", classification_report(y_test, y_pred))
+# Save predictions for each company
+def make_predictions(data, model):
+    predictions = []
+    for company in data['company'].unique():
+        latest_data = data[data['company'] == company].iloc[-1]
+        X = latest_data[features].values.reshape(1, -1)
+        X = imputer.transform(X)
+        prob = model.predict(X)[0][0]
+        prediction = 1 if prob > 0.5 else 0
+        predictions.append({
+            'company': company,
+            'date': str(latest_data['date']),
+            'prediction': prediction,
+            'confidence': prob if prediction == 1 else 1 - prob
+        })
+    return predictions
+
+company_predictions = make_predictions(combined_df, model)
+predictions_df = pd.DataFrame(company_predictions)
+predictions_df.to_csv('stock_predictions.csv', index=False)
+print("Predictions saved to 'stock_predictions.csv'")
