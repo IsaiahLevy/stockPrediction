@@ -5,6 +5,7 @@ import Homepage from "./Homepage";
 import AppleDetailPage from "./AppleDetailPage";
 import AmazonDetailPage from "./AmazonDetailPage";
 import TeslaDetailPage from "./TeslaDetailPage";
+import ProfilePage from "./ProfilePage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/AAPL" element={<AppleDetailPage />} />
           <Route path="/AMZN" element={<AmazonDetailPage />} />
           <Route path="/TSLA" element={<TeslaDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </Router>
     </div>

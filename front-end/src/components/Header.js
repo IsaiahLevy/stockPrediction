@@ -67,6 +67,11 @@ function Header() {
                 AMAZON
               </a>
             </li>
+            <li>
+              <Link className="header-routing" to="/profile">
+                Profile
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
