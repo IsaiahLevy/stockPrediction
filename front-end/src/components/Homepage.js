@@ -48,7 +48,7 @@ export default function Homepage() {
           fontSize: "20px",
         }}
       >
-        Members: Isiah Levy, Kim Young, Omar Aly, Athena Leong
+        Members: Isiah Levy, Kim Young, Omar Aly, Athena Leong, Kefan Xiao
       </p>
     </div>
   );
