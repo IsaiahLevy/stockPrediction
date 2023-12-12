@@ -8,7 +8,7 @@ const csv = require('csv-parser')
 require("dotenv").config();
 
 // Connect to database
-connect_db();
+// connect_db();
 
 // Importing routes
 const homePage = require("./routes/homePage");
@@ -71,5 +71,14 @@ app.get('/api/stock-prediction/:company', (req, res) => {
       }
   });
 });
+
+// Define the port
+const PORT = process.env.PORT || 7002;
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
 
 module.exports = app;

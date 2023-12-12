@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import SentimentBar from "./SentimentBar";
 import Tweet from "./Tweet";
 import "./StockDetailPage.css";
 import Header from "./Header";
+import SentimentGraph from './SentimentGraph';
 
 const StockDetailPage = ({
   stockTitle,
@@ -11,6 +12,12 @@ const StockDetailPage = ({
   tweetData,
   explanation,
 }) => {
+  const [isGraphVisible, setIsGraphVisible] = useState(false); // State to track visibility
+
+  const toggleGraphVisibility = () => {
+    setIsGraphVisible(!isGraphVisible);
+  };
+
   return (
     <div>
       <Header />
@@ -29,6 +36,14 @@ const StockDetailPage = ({
         <h3>Why this Sentiment?</h3>
         <p>{explanation}</p>
       </div>
+      <div className="sentiment-analysis-section">
+          <h1>Sentiment Analysis</h1>
+          <p>(Premium Only)</p>
+          <button onClick={toggleGraphVisibility} className="show-graph-btn">
+            {isGraphVisible ? 'Hide Graph' : 'Show Graph'}
+          </button>
+          {isGraphVisible && <SentimentGraph company={stockTitle} />}
+        </div>
     </div>
     </div>
 

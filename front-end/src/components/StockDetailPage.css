@@ -9,6 +9,10 @@
   background-color: #f4f4f4;
 }
 
+.sentiment-analysis-section {
+  margin-top: 40px;
+}
+
 .stock-header {
   display: flex;
   align-items: center;
