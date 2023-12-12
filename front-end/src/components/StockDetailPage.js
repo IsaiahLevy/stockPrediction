@@ -2,6 +2,7 @@ import React from "react";
 import SentimentBar from "./SentimentBar";
 import Tweet from "./Tweet";
 import "./StockDetailPage.css";
+import Header from "./Header";
 
 const StockDetailPage = ({
   stockTitle,
@@ -11,6 +12,8 @@ const StockDetailPage = ({
   explanation,
 }) => {
   return (
+    <div>
+      <Header />
     <div className="stock-detail-page">
       <div className="stock-header">
         <img src={imageSrc} alt={stockTitle} className="stock-logo" />
@@ -27,6 +30,8 @@ const StockDetailPage = ({
         <p>{explanation}</p>
       </div>
     </div>
+    </div>
+
   );
 };
 
