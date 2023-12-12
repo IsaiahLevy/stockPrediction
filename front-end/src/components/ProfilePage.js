@@ -7,7 +7,8 @@ const ProfilePage = () => {
   const userProfile = {
     name: 'John Doe',
     email: 'johndoe@example.com',
-    password: '********' // Hashed password
+    password: '********', // Hashed password
+    status: 'Premium' // or 'Basic'
   };
 
   return (
@@ -34,6 +35,11 @@ const ProfilePage = () => {
                 <label>Password:</label>
                 <div className="field-value">{userProfile.password}</div>
                 <button className="edit-btn">Edit</button>
+            </div>
+            <div className="info-field">
+                <label>Status:</label>
+                <div className="field-value">{userProfile.status}</div>
+                <button className="edit-btn">Manage</button>
             </div>
             </div>
             <button className="logout-btn">Logout</button>
