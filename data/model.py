@@ -2,11 +2,15 @@ import json
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import classification_report
+from sklearn.metrics import mean_absolute_error
+from imblearn.over_sampling import SMOTE
+from tensorflow.keras.layers import LSTM, Dense, Dropout
 import matplotlib.pyplot as plt
 import seaborn as sns
+import shap
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
 
 # Function to load JSON data
 def load_json(file_path):
@@ -20,77 +24,97 @@ stockData = load_json('stockData.json')
 tweets_df = pd.DataFrame(tweets)
 stock_df = pd.DataFrame(stockData)
 
-# Extract sentiment data
-tweets_df['positive_sentiment'] = tweets_df['sentiment'].apply(lambda x: x[0])
-tweets_df['neutral_sentiment'] = tweets_df['sentiment'].apply(lambda x: x[1])
-tweets_df['negative_sentiment'] = tweets_df['sentiment'].apply(lambda x: x[2])
-
-# Aggregate tweet data
+# Data preprocessing
 tweets_df['date'] = pd.to_datetime(tweets_df['date']).dt.date
-aggregated_tweets = tweets_df.groupby(['date', 'company']).agg(
-    mean_positive_sentiment=('positive_sentiment', 'mean'),
-    mean_neutral_sentiment=('neutral_sentiment', 'mean'),
-    mean_negative_sentiment=('negative_sentiment', 'mean'),
-    tweet_count=('tweet', 'count')
-).reset_index()
-
-# Prepare stock data
+tweets_df[['positive_sentiment', 'neutral_sentiment', 'negative_sentiment']] = pd.DataFrame(tweets_df.sentiment.tolist(), index=tweets_df.index)
 stock_df['date'] = pd.to_datetime(stock_df['date']).dt.date
-stock_df['target'] = (stock_df['close'] > stock_df['open']).astype(int)
 
-# Merge datasets
-combined_df = pd.merge(aggregated_tweets, stock_df, on=['date', 'company'])
+# Convert 'open' and 'close' to numeric
+stock_df['open'] = pd.to_numeric(stock_df['open'], errors='coerce')
+stock_df['close'] = pd.to_numeric(stock_df['close'], errors='coerce')
 
-# Exploratory Data Analysis (EDA) and Visualization
-# Perform EDA and save plots as needed
+# Aggregating sentiment scores per company per day
+grouped_tweets = tweets_df.groupby(['date', 'company']).agg({'positive_sentiment': 'mean', 
+                                                             'neutral_sentiment': 'mean', 
+                                                             'negative_sentiment': 'mean'}).reset_index()
+
+# Merging with stock data
+combined_df = pd.merge(grouped_tweets, stock_df, on=['date', 'company'], how='left')
+
+# Feature engineering: Adding technical indicators
+combined_df['moving_average'] = combined_df.groupby('company')['close'].transform(lambda x: x.rolling(window=3).mean())
+
+# Target variable
+combined_df['target'] = (combined_df['close'] > combined_df['open']).astype(int)
 
 # Split data into training and testing sets
-features = ['mean_positive_sentiment', 'mean_neutral_sentiment', 'mean_negative_sentiment', 'tweet_count']
-X = combined_df[features]
-y = combined_df['target']
+split_date = combined_df['date'].quantile(0.8, interpolation='nearest')
+train_df = combined_df[combined_df['date'] <= split_date]
+test_df = combined_df[combined_df['date'] > split_date]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+features = ['positive_sentiment', 'neutral_sentiment', 'negative_sentiment', 'moving_average']
+X_train, y_train = train_df[features], train_df['target']
+X_test, y_test = test_df[features], test_df['target']
 
 # Impute missing values
 imputer = SimpleImputer(strategy='mean')
 X_train = imputer.fit_transform(X_train)
 X_test = imputer.transform(X_test)
 
+# Apply SMOTE for handling class imbalance
+smote = SMOTE(random_state=42)
+X_train, y_train = smote.fit_resample(X_train, y_train)
+
 # Model Definition
 def build_model(input_shape):
     model = tf.keras.Sequential([
-        tf.keras.layers.Dense(32, activation='relu', input_shape=(input_shape,)),
-        tf.keras.layers.Dense(1, activation='sigmoid')
+        LSTM(50, return_sequences=True, input_shape=(input_shape, 1)),
+        Dropout(0.2),
+        LSTM(50),
+        Dropout(0.2),
+        Dense(1, activation='sigmoid')
     ])
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
-# Train the model
-model = build_model(X_train.shape[1])
-model.fit(X_train, y_train, epochs=10, batch_size=32, verbose=0)
+# Cross-validation
+tscv = TimeSeriesSplit(n_splits=5)
+cv_scores = []
 
-# Evaluate the model
-predictions = model.predict(X_test)
-print(classification_report(y_test, predictions.round()))
+for train_index, test_index in tscv.split(X_train):
+    model = build_model(len(features))
+    X_train_t, y_train_t = X_train[train_index], y_train[train_index]
+    X_test_t, y_test_t = X_train[test_index], y_train[test_index]
+    model.fit(X_train_t, y_train_t, epochs=50, batch_size=32, verbose=0)
+    scores = model.evaluate(X_test_t, y_test_t, verbose=0)
+    cv_scores.append(scores[1])
+    print(f'Fold Score: {scores[1]}')
 
-# Save predictions for each company
-def make_predictions(data, model):
-    predictions = []
-    for company in data['company'].unique():
-        latest_data = data[data['company'] == company].iloc[-1]
-        X = latest_data[features].values.reshape(1, -1)
-        X = imputer.transform(X)
-        prob = model.predict(X)[0][0]
-        prediction = 1 if prob > 0.5 else 0
-        predictions.append({
-            'company': company,
-            'date': str(latest_data['date']),
-            'prediction': prediction,
-            'confidence': prob if prediction == 1 else 1 - prob
-        })
-    return predictions
+print(f'Mean CV Accuracy: {np.mean(cv_scores)}')
 
-company_predictions = make_predictions(combined_df, model)
-predictions_df = pd.DataFrame(company_predictions)
-predictions_df.to_csv('stock_predictions.csv', index=False)
-print("Predictions saved to 'stock_predictions.csv'")
+# Model Interpretability with SHAP
+explainer = shap.KernelExplainer(model.predict, X_train[:100])
+shap_values = explainer.shap_values(X_train[:100])
+#shap.summary_plot(shap_values, X_train[:100], feature_names=features)
+
+
+final_model = build_model(len(features))
+final_model.fit(X_train, y_train, epochs=50, batch_size=32, verbose=0)
+
+# Evaluate the model on the test set
+y_pred = final_model.predict(X_test)
+y_pred_class = (y_pred > 0.5).astype(int)
+
+# Calculate and print evaluation metrics
+accuracy = accuracy_score(y_test, y_pred_class)
+conf_matrix = confusion_matrix(y_test, y_pred_class)
+classification_rep = classification_report(y_test, y_pred_class)
+roc_auc = roc_auc_score(y_test, y_pred)
+
+print(f'Accuracy: {accuracy}')
+print('Confusion Matrix:\n', conf_matrix)
+print('Classification Report:\n', classification_rep)
+print(f'ROC AUC Score: {roc_auc}')
+
+# Save the model, adjust as needed
+final_model.save('stock_prediction_model.h5')
