@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import StockDetailPage from "./StockDetailPage";
-import Apple from "./assets/apple-logo.svg";
+import GoogleLogo from "./assets/google-logo.svg"; // Make sure to add the Google logo SVG file in your assets
 import avatar from "./assets/AvatarPlaceholder.svg";
 
-function AppleDetailPage() {
-  const [sentimentScore, setSentimentScore] = useState(0);
+function GoogleDetailPage() {
+  const [sentimentScore, setSentimentScore] = useState(0); // Initialize to 0 or a default value
 
   const fetchSentimentData = async () => {
     try {
       const response = await fetch(
-        "http://localhost:7430/api/stock-prediction/AAPL"
+        "http://localhost:7430/api/stock-prediction/GOOGL"
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -23,28 +23,30 @@ function AppleDetailPage() {
       console.error("Failed to fetch sentiment data:", error);
     }
   };
+
   useEffect(() => {
     fetchSentimentData();
   }, []);
+
   return (
-    <div style={{ height: "100vh" }}>
+    <>
       <StockDetailPage
-        stockTitle="AAPL"
+        stockTitle="GOOGL"
+        imageSrc={GoogleLogo}
         prediction="Bullish"
-        imageSrc={Apple}
         sentimentPercent={sentimentScore}
         tweetData={{
-          username: "John Doe",
-          handle: "johndoe",
+          username: "Alex Johnson",
+          handle: "alexjohnson",
           content:
-            "Exciting times for $AAPL investors. The new product launch is a game changer! 🚀",
+            "Google's advancements in AI and cloud computing are impressive. Bullish on #GOOGL for the long term! 💻🌐",
           imageSrc: avatar,
-          stockSymbol: "AAPL",
+          stockSymbol: "GOOGL",
         }}
-        explanation="The sentiment score is high due to the recent successful product launch and positive market response."
+        explanation="Google has a high sentiment score due to innovative AI and cloud solutions and strong market presence."
       />
-    </div>
+    </>
   );
 }
 
-export default AppleDetailPage;
+export default GoogleDetailPage;

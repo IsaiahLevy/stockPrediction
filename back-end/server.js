@@ -2,9 +2,9 @@ const express = require("express");
 const fs = require("fs"); // Node.js File System module for reading files
 const path = require("path"); // Node.js Path module
 const axios = require("axios");
-const mongoose = require("mongoose");
+// const mongoose = require("mongoose");
 const connect_db = require("./db");
-const csv = require('csv-parser')
+const csv = require("csv-parser");
 require("dotenv").config();
 
 // Connect to database
@@ -41,44 +41,39 @@ app.use("/", demeanorPage);
 
 // Route to serve the sentiment data
 app.get("/api/company-sentiment", (req, res) => {
-    const filePath = path.join(__dirname, './', 'company_monthly_sentiment.json');
-    
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error("Error reading the sentiment file:", err);
-            return res.status(500).send("Unable to retrieve sentiment data.");
-        }
-        res.json(JSON.parse(data));
-    });
-});
+  const filePath = path.join(__dirname, "./", "company_monthly_sentiment.json");
 
-
-app.get('/api/stock-prediction/:company', (req, res) => {
-  const companyTag = req.params.company.toUpperCase();
-  const results = [];
-
-  fs.createReadStream('stock_predictions.csv')
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-      const companyData = results.filter(item => item.company === companyTag);
-      const latestPrediction = companyData[companyData.length - 1]; // Assuming the latest prediction is at the end
-
-      if (latestPrediction) {
-          res.json(latestPrediction);
-      } else {
-          res.status(404).send('No prediction data found for the specified company.');
-      }
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading the sentiment file:", err);
+      return res.status(500).send("Unable to retrieve sentiment data.");
+    }
+    res.json(JSON.parse(data));
   });
 });
 
-// Define the port
-const PORT = process.env.PORT || 7002;
+app.get("/api/stock-prediction/:company", (req, res) => {
+  const companyTag = req.params.company.toUpperCase();
+  const results = [];
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  fs.createReadStream("stock_predictions.csv")
+    .pipe(csv())
+    .on("data", (data) => results.push(data))
+    .on("end", () => {
+      const companyData = results.filter((item) => item.company === companyTag);
+      const latestPrediction = companyData[companyData.length - 1]; // Assuming the latest prediction is at the end
+
+      if (latestPrediction) {
+        res.json(latestPrediction);
+      } else {
+        res
+          .status(404)
+          .send("No prediction data found for the specified company.");
+      }
+    });
 });
-
+app.listen(7430, () => {
+  console.log(`Server is running on port ${7430}`);
+});
 
 module.exports = app;

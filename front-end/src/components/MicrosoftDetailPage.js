@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import StockDetailPage from "./StockDetailPage";
-import Apple from "./assets/apple-logo.svg";
+import TeslaLogo from "./assets/microsoft-logo.svg";
 import avatar from "./assets/AvatarPlaceholder.svg";
 
-function AppleDetailPage() {
-  const [sentimentScore, setSentimentScore] = useState(0);
+function MicrosoftDetailPage() {
+  const [sentimentScore, setSentimentScore] = useState(0); // Initialize to 0 or a default value
 
   const fetchSentimentData = async () => {
     try {
       const response = await fetch(
-        "http://localhost:7430/api/stock-prediction/AAPL"
+        "http://localhost:7430/api/stock-prediction/MSFT"
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -23,28 +23,30 @@ function AppleDetailPage() {
       console.error("Failed to fetch sentiment data:", error);
     }
   };
+
   useEffect(() => {
     fetchSentimentData();
   }, []);
+
   return (
-    <div style={{ height: "100vh" }}>
+    <>
       <StockDetailPage
-        stockTitle="AAPL"
+        stockTitle="MSFT"
+        imageSrc={TeslaLogo}
         prediction="Bullish"
-        imageSrc={Apple}
         sentimentPercent={sentimentScore}
         tweetData={{
-          username: "John Doe",
-          handle: "johndoe",
+          username: "Mark Roberts",
+          handle: "markyroberts",
           content:
-            "Exciting times for $AAPL investors. The new product launch is a game changer! 🚀",
+            "Microsoft's innovation in the EV space is unrivaled. Bullish on #MSFT for the long term! 🚗⚡",
           imageSrc: avatar,
-          stockSymbol: "AAPL",
+          stockSymbol: "MSFT",
         }}
-        explanation="The sentiment score is high due to the recent successful product launch and positive market response."
+        explanation="Microsoft has a high sentiment score due to breakthroughs in technology and strong leadership."
       />
-    </div>
+    </>
   );
 }
 
-export default AppleDetailPage;
+export default MicrosoftDetailPage;

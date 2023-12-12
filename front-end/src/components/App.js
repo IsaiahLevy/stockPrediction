@@ -4,8 +4,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Homepage from "./Homepage";
 import AppleDetailPage from "./AppleDetailPage";
 import AmazonDetailPage from "./AmazonDetailPage";
-import TeslaDetailPage from "./TeslaDetailPage";
+import MicrosoftDetailPage from "./MicrosoftDetailPage";
 import ProfilePage from "./ProfilePage";
+import GoogleDetailPage from "./GoogleDetailPage";
 
 function App() {
   return (
@@ -15,7 +16,8 @@ function App() {
           <Route path="/" element={<Homepage />} />
           <Route path="/AAPL" element={<AppleDetailPage />} />
           <Route path="/AMZN" element={<AmazonDetailPage />} />
-          <Route path="/TSLA" element={<TeslaDetailPage />} />
+          <Route path="/TSLA" element={<MicrosoftDetailPage />} />
+          <Route path="/GOOGL" element={<GoogleDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </Router>

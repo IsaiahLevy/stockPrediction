@@ -4,9 +4,10 @@ import axios from "axios";
 import Header from "./Header";
 import StockCard from "./StockCard";
 import Apple from "./assets/apple-logo.svg";
-import Tesla from "./assets/tesla.svg";
+import Tesla from "./assets/microsoft-logo.svg";
 import Amazon from "./assets/amazon-logo.svg";
 import Other from "./assets/other-logo.png";
+import Google from "./assets/google-logo.svg";
 import { Link } from "react-router-dom";
 
 export default function Homepage() {
@@ -31,13 +32,16 @@ export default function Homepage() {
           <StockCard title="AAPL" imageSrc={Apple} />
         </Link>
         <Link to="/TSLA">
-          <StockCard title="Tesla" imageSrc={Tesla} />
+          <StockCard title="Microsoft" imageSrc={Tesla} />
         </Link>
         <Link to="/AMZN">
           <StockCard title="Amazon" imageSrc={Amazon} />
         </Link>
-        <Link to="/">
+        {/* <Link to="/">
           <StockCard title="View More (Premium Only)" imageSrc={Other} />
+        </Link> */}
+        <Link to="/GOOGL">
+          <StockCard title="Google" imageSrc={Google} />
         </Link>
       </div>
       <p

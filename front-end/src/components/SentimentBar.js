@@ -38,10 +38,10 @@ const SentimentBar = ({ bullishPercent = 50 }) => {
       }}
     >
       <div style={bullishStyle}>
-        {bullishPercent > 0 ? `${bullishPercent}% Bullish` : ""}
+        {bullishPercent > 0 ? `${bullishPercent}% Confident` : ""}
       </div>
       <div style={bearishStyle}>
-        {bearishPercent > 0 ? `${bearishPercent}% Bearish` : ""}
+        {bearishPercent > 0 ? `${bearishPercent}% ` : ""}
       </div>
     </div>
   );

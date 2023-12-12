@@ -59,7 +59,12 @@ function Header() {
             </li>
             <li>
               <Link className="header-routing" to="/TSLA">
-                TESLA
+                Microsoft
+              </Link>
+            </li>
+            <li>
+              <Link className="header-routing" to="/GOOGL">
+                Google
               </Link>
             </li>
             <li>
