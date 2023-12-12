@@ -57,7 +57,7 @@ app.get('/api/stock-prediction/:company', (req, res) => {
   const companyTag = req.params.company.toUpperCase();
   const results = [];
 
-  fs.createReadStream('path_to_stock_predictions.csv')
+  fs.createReadStream('stock_predictions.csv')
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', () => {
